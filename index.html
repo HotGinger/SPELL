@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Perfect Training</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Pitch Perfect Training</h1>
+            <p class="subtitle">Train your ear to identify musical notes</p>
+        </header>
+
+        <div class="game-container">
+            <div class="score-board">
+                <div class="score-item">
+                    <span class="label">Score:</span>
+                    <span id="score" class="value">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="label">Streak:</span>
+                    <span id="streak" class="value">0</span>
+                </div>
+            </div>
+
+            <div class="game-area">
+                <div id="status" class="status-message">Click "Start" to begin training</div>
+
+                <div class="note-display">
+                    <div id="currentNote" class="current-note">?</div>
+                    <div id="feedback" class="feedback"></div>
+                </div>
+
+                <div class="controls">
+                    <button id="startBtn" class="btn btn-primary">Start Training</button>
+                    <button id="playNoteBtn" class="btn btn-secondary" disabled>Play Note Again</button>
+                    <button id="listenBtn" class="btn btn-success" disabled>Sing the Note</button>
+                </div>
+
+                <div id="micStatus" class="mic-status"></div>
+
+                <div class="note-buttons" id="noteButtons">
+                    <button class="note-btn" data-note="C">C</button>
+                    <button class="note-btn" data-note="C#">C#</button>
+                    <button class="note-btn" data-note="D">D</button>
+                    <button class="note-btn" data-note="D#">D#</button>
+                    <button class="note-btn" data-note="E">E</button>
+                    <button class="note-btn" data-note="F">F</button>
+                    <button class="note-btn" data-note="F#">F#</button>
+                    <button class="note-btn" data-note="G">G</button>
+                    <button class="note-btn" data-note="G#">G#</button>
+                    <button class="note-btn" data-note="A">A</button>
+                    <button class="note-btn" data-note="A#">A#</button>
+                    <button class="note-btn" data-note="B">B</button>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3>How to Play:</h3>
+                <ol>
+                    <li>Click "Start Training" to begin</li>
+                    <li>Listen to the note that plays</li>
+                    <li>Click "Sing the Note" and sing the same pitch you heard</li>
+                    <li>The app will detect your pitch and show if you got it right!</li>
+                </ol>
+                <p class="tip"><strong>Tip:</strong> You can also use the note buttons to manually select your answer</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="pitchDetector.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
