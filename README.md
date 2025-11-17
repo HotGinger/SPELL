@@ -59,6 +59,28 @@ The app uses an autocorrelation-based pitch detection algorithm that:
 
 **Note**: Some browsers require HTTPS for microphone access. If testing locally, use a local server or browsers like Chrome which allow microphone on localhost.
 
+## Deploy to Vercel
+
+The easiest way to use this app is to deploy it to Vercel:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/HotGinger/SPELL)
+
+### Manual Deployment
+
+1. Install Vercel CLI:
+```bash
+npm i -g vercel
+```
+
+2. Deploy:
+```bash
+vercel
+```
+
+3. Follow the prompts to deploy
+
+**Important**: Vercel deployment requires HTTPS, which is automatically provided. This is necessary for microphone access to work properly.
+
 ## Running Locally
 
 ### Option 1: Simple HTTP Server (Python)
