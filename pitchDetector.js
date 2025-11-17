@@ -32,7 +32,7 @@ class PitchDetector {
         }
     }
 
-    startListening(callback) {
+    startListening(callback, volumeCallback) {
         if (!this.audioContext) {
             console.error('Audio context not initialized');
             return;
@@ -44,6 +44,18 @@ class PitchDetector {
 
             // Get time domain data
             this.analyser.getFloatTimeDomainData(this.buffer);
+
+            // Calculate volume (RMS) for visual feedback
+            let rms = 0;
+            for (let i = 0; i < this.buffer.length; i++) {
+                rms += this.buffer[i] * this.buffer[i];
+            }
+            rms = Math.sqrt(rms / this.buffer.length);
+
+            // Report volume level
+            if (volumeCallback) {
+                volumeCallback(rms);
+            }
 
             // Detect pitch using autocorrelation
             const pitch = this.autoCorrelate(this.buffer, this.audioContext.sampleRate);
@@ -82,12 +94,21 @@ class PitchDetector {
         }
         rms = Math.sqrt(rms / SIZE);
 
-        // Not enough signal
-        if (rms < 0.01) return -1;
+        // DEBUG: Log RMS level
+        if (window.debugPitch) {
+            console.log('RMS:', rms.toFixed(4));
+        }
 
-        // Find the best offset
+        // Not enough signal - lowered threshold for better sensitivity
+        if (rms < 0.005) return -1;
+
+        // Find the first peak in autocorrelation
+        // Limit search to reasonable pitch range (80Hz to 1000Hz)
+        const MIN_OFFSET = Math.floor(sampleRate / 1000); // ~1000Hz max
+        const MAX_OFFSET = Math.floor(sampleRate / 80);   // ~80Hz min
+
         let lastCorrelation = 1;
-        for (let offset = 1; offset < MAX_SAMPLES; offset++) {
+        for (let offset = MIN_OFFSET; offset < Math.min(MAX_OFFSET, MAX_SAMPLES); offset++) {
             let correlation = 0;
 
             for (let i = 0; i < MAX_SAMPLES; i++) {
@@ -96,21 +117,29 @@ class PitchDetector {
 
             correlation = 1 - (correlation / MAX_SAMPLES);
 
-            if (correlation > 0.9 && correlation > lastCorrelation) {
-                const foundGoodCorrelation = true;
-                if (foundGoodCorrelation) {
-                    if (correlation > best_correlation) {
-                        best_correlation = correlation;
-                        best_offset = offset;
-                    }
+            // Look for first good peak - much more forgiving threshold
+            if (correlation > 0.5 && correlation > lastCorrelation) {
+                if (correlation > best_correlation) {
+                    best_correlation = correlation;
+                    best_offset = offset;
                 }
             }
 
             lastCorrelation = correlation;
         }
 
-        if (best_correlation > 0.01) {
-            return sampleRate / best_offset;
+        // DEBUG: Log correlation
+        if (window.debugPitch) {
+            console.log('Best correlation:', best_correlation.toFixed(4), 'Offset:', best_offset);
+        }
+
+        // Return frequency if we found a good correlation
+        if (best_offset > 0 && best_correlation > 0.3) {
+            const frequency = sampleRate / best_offset;
+            // Filter out unreasonable frequencies
+            if (frequency >= 80 && frequency <= 1000) {
+                return frequency;
+            }
         }
 
         return -1;

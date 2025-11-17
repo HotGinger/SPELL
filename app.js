@@ -27,6 +27,8 @@ class PitchPerfectApp {
             score: document.getElementById('score'),
             streak: document.getElementById('streak'),
             micStatus: document.getElementById('micStatus'),
+            volumeBar: document.getElementById('volumeBar'),
+            debugToggle: document.getElementById('debugToggle'),
             noteButtons: document.querySelectorAll('.note-btn')
         };
 
@@ -34,6 +36,12 @@ class PitchPerfectApp {
         this.elements.startBtn.addEventListener('click', () => this.startGame());
         this.elements.playNoteBtn.addEventListener('click', () => this.playCurrentNote());
         this.elements.listenBtn.addEventListener('click', () => this.toggleListening());
+
+        // Debug toggle
+        this.elements.debugToggle.addEventListener('change', (e) => {
+            window.debugPitch = e.target.checked;
+            console.log('Debug mode:', window.debugPitch ? 'ON' : 'OFF');
+        });
 
         // Add event listeners to note buttons
         this.elements.noteButtons.forEach(btn => {
@@ -138,24 +146,33 @@ class PitchPerfectApp {
 
         this.disableNoteButtons();
 
-        this.pitchDetector.startListening((note, frequency) => {
-            this.detectedNotes.push(note);
-            this.elements.micStatus.textContent = `🎤 Detected: ${note} (${Math.round(frequency)}Hz)`;
+        this.pitchDetector.startListening(
+            // Pitch detection callback
+            (note, frequency) => {
+                this.detectedNotes.push(note);
+                this.elements.micStatus.textContent = `🎤 Detected: ${note} (${Math.round(frequency)}Hz) - ${this.detectedNotes.length} samples`;
 
-            // Clear previous timeout
-            if (this.detectionTimeout) {
-                clearTimeout(this.detectionTimeout);
-            }
-
-            // After 2 seconds of consistent detection, check the answer
-            this.detectionTimeout = setTimeout(() => {
-                if (this.detectedNotes.length > 0) {
-                    const mostCommonNote = this.getMostCommonNote(this.detectedNotes);
-                    this.stopListening();
-                    this.checkAnswer(mostCommonNote);
+                // Clear previous timeout
+                if (this.detectionTimeout) {
+                    clearTimeout(this.detectionTimeout);
                 }
-            }, 2000);
-        });
+
+                // After 1 second of consistent detection, check the answer (faster feedback)
+                this.detectionTimeout = setTimeout(() => {
+                    if (this.detectedNotes.length > 0) {
+                        const mostCommonNote = this.getMostCommonNote(this.detectedNotes);
+                        this.stopListening();
+                        this.checkAnswer(mostCommonNote);
+                    }
+                }, 1000);
+            },
+            // Volume level callback
+            (rms) => {
+                // Update volume bar (scale RMS to percentage, amplify for visibility)
+                const percentage = Math.min(100, rms * 500);
+                this.elements.volumeBar.style.width = percentage + '%';
+            }
+        );
     }
 
     stopListening() {
@@ -168,6 +185,7 @@ class PitchPerfectApp {
         this.elements.status.classList.remove('listening');
         this.elements.micStatus.textContent = '';
         this.elements.micStatus.classList.remove('active');
+        this.elements.volumeBar.style.width = '0%';
 
         this.enableNoteButtons();
 
